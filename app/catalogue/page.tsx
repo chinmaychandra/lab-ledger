@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { equipment } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth";
 import { ShieldAlert, Award, ArrowRight, CheckCircle2 } from "lucide-react";
+export const dynamic = "force-dynamic";
 
 export default async function CataloguePage() {
   const currentUser = await getCurrentUser();

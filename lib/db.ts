@@ -2,13 +2,12 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "@/db/schema";
 
-const connectionString = process.env.DATABASE_URL || "";
+const connectionString =
+  process.env.DATABASE_URL ||
+  process.env.POSTGRES_URL ||
+  "postgres://postgres:postgres@localhost:5432/postgres";
 
-// Configure postgres.js client with max 1 connection for seed/serverless stability
-const client = postgres(connectionString, {
-  prepare: false,
-  ssl: "require",
-  max: 1,
-});
+// Max 1 connection for serverless/Vercel functions
+const client = postgres(connectionString, { max: 1, prepare: false });
 
 export const db = drizzle(client, { schema });
