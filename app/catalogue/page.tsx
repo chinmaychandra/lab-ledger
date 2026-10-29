@@ -1,113 +1,98 @@
 import React from "react";
 import Link from "next/link";
-import { db } from "@/lib/db";
-import { equipment } from "@/db/schema";
-import { getCurrentUser } from "@/lib/auth";
-import { ShieldAlert, Award, ArrowRight, CheckCircle2 } from "lucide-react";
+import { supabase } from "@/lib/db";
+import { Wrench, ShieldCheck, Clock, MapPin, ArrowRight } from "lucide-react";
+
 export const dynamic = "force-dynamic";
 
 export default async function CataloguePage() {
-  const currentUser = await getCurrentUser();
-  const allEquipment = await db.select().from(equipment);
+  let equipmentList: any[] = [];
+
+  try {
+    const { data, error } = await supabase.from("equipment").select("*").order("name");
+    if (!error && data) {
+      equipmentList = data;
+    }
+  } catch (err) {
+    console.error("Failed to load equipment list:", err);
+  }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-6xl mx-auto font-mono">
       {/* Header Banner */}
-      <div className="bg-slate-900 border-2 border-slate-700 p-6 rounded-md shadow-[5px_5px_0px_0px_rgba(15,23,42,1)] flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="bg-slate-900 border-2 border-slate-700 p-6 rounded-md shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-white uppercase font-mono">
-            Equipment Catalogue
+          <h1 className="text-3xl font-black tracking-tight text-white uppercase flex items-center gap-2">
+            <Wrench className="h-7 w-7 text-amber-400" />
+            <span>Equipment Catalogue</span>
           </h1>
-          <p className="text-xs font-mono text-slate-400 mt-1">
-            Browse verified lab equipment, check safety requirements, and submit booking requests.
+          <p className="text-xs text-slate-400 mt-1">
+            Browse precision laboratory inventory, safety prerequisites, and weekly quota limits.
           </p>
         </div>
-        <div className="bg-slate-950 border-2 border-slate-800 rounded px-3.5 py-2 text-xs font-mono text-slate-300">
-          ACTIVE_SESSION: <span className="font-bold text-amber-400">{currentUser.fullName}</span> ({currentUser.role})
+        <div className="bg-amber-400 text-slate-950 px-3 py-1.5 rounded font-black text-xs uppercase border-2 border-slate-950 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] w-fit">
+          {equipmentList.length} ACTIVE SYSTEMS
         </div>
       </div>
 
-      {/* Equipment Grid (Retro OS Window Style) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {allEquipment.map((item) => (
-          <div
-            key={item.id}
-            className="bg-slate-900 border-2 border-slate-700 rounded-md shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] hover:shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] hover:border-slate-600 transition-all flex flex-col overflow-hidden"
-          >
-            {/* Retro Window Control Header */}
-            <div className="bg-slate-800 border-b-2 border-slate-700 px-3 py-1.5 flex items-center justify-between">
-              <div className="flex items-center space-x-1.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-rose-500 inline-block border border-slate-900"></span>
-                <span className="h-2.5 w-2.5 rounded-full bg-amber-500 inline-block border border-slate-900"></span>
-                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 inline-block border border-slate-900"></span>
-                <span className="text-[10px] font-mono text-slate-400 ml-1 truncate max-w-[140px]">
-                  {item.name.toLowerCase().replace(/\s+/g, "-")}.sys
-                </span>
-              </div>
-              <span className="text-[10px] font-mono font-bold text-indigo-300 bg-slate-950 px-2 py-0.5 rounded border border-slate-700 uppercase">
-                {item.category}
-              </span>
-            </div>
-
-            {/* Image Banner */}
-            <div className="h-44 bg-slate-950 border-b-2 border-slate-700 relative overflow-hidden">
-              {item.imageUrl ? (
-                <img
-                  src={item.imageUrl}
-                  alt={item.name}
-                  className="w-full h-full object-cover grayscale contrast-125 hover:grayscale-0 transition-all duration-300"
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full text-slate-600 font-mono text-xs">
-                  [ GRAPHIC_UNAVAILABLE ]
+      {/* Grid Display */}
+      {equipmentList.length === 0 ? (
+        <div className="bg-slate-900 border-2 border-slate-700 p-12 text-center rounded-md text-slate-500 text-xs">
+          [ NO EQUIPMENT REGISTERED IN CATALOGUE ]
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {equipmentList.map((item) => (
+            <div
+              key={item.id}
+              className="bg-slate-900 border-2 border-slate-700 rounded-md overflow-hidden shadow-[5px_5px_0px_0px_rgba(15,23,42,1)] flex flex-col justify-between hover:border-slate-500 transition-all"
+            >
+              <div>
+                <div className="h-44 bg-slate-950 relative overflow-hidden border-b-2 border-slate-800">
+                  <img
+                    src={item.image_url || "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800"}
+                    alt={item.name}
+                    className="w-full h-full object-cover opacity-80"
+                  />
+                  <span className="absolute top-3 right-3 bg-slate-950/90 text-amber-400 text-[10px] font-bold px-2 py-1 rounded border border-amber-500/40 uppercase">
+                    {item.category || "LAB HARDWARE"}
+                  </span>
                 </div>
-              )}
-            </div>
 
-            {/* Card Content Body */}
-            <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-              <div className="space-y-2">
-                <h3 className="text-base font-black text-white leading-snug font-mono uppercase">
-                  {item.name}
-                </h3>
-                <p className="text-xs text-slate-400 line-clamp-2">{item.description}</p>
-                <p className="text-xs text-slate-500 font-mono pt-1">📍 {item.location}</p>
+                <div className="p-5 space-y-3">
+                  <h2 className="text-lg font-black text-white uppercase leading-snug">{item.name}</h2>
+                  <p className="text-xs text-slate-400 line-clamp-2">{item.description}</p>
+
+                  <div className="space-y-1.5 text-xs text-slate-300 pt-2 border-t border-slate-800">
+                    <div className="flex items-center space-x-2">
+                      <MapPin className="h-3.5 w-3.5 text-amber-400" />
+                      <span>{item.location}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Clock className="h-3.5 w-3.5 text-sky-400" />
+                      <span>Max Quota: {item.max_weekly_hours}h / week</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+                      <span>Req: {item.required_certification_code || "BASIC_SAFETY"}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* Safety Badges */}
-              <div className="space-y-2 pt-3 border-t-2 border-slate-800/80 font-mono">
-                {item.requiredCertCode ? (
-                  <div className="flex items-center text-xs text-amber-400 gap-1.5 bg-amber-950/30 p-2 rounded border border-amber-900/50">
-                    <Award className="h-4 w-4 shrink-0" />
-                    <span>Req: <strong className="underline">{item.requiredCertCode}</strong></span>
-                  </div>
-                ) : (
-                  <div className="flex items-center text-xs text-emerald-400 gap-1.5 bg-emerald-950/30 p-2 rounded border border-emerald-900/50">
-                    <CheckCircle2 className="h-4 w-4 shrink-0" />
-                    <span>No Cert Required</span>
-                  </div>
-                )}
-
-                {item.requiresSupervisorCosign && (
-                  <div className="flex items-center text-xs text-rose-400 gap-1.5 bg-rose-950/30 p-2 rounded border border-rose-900/50">
-                    <ShieldAlert className="h-4 w-4 shrink-0" />
-                    <span>Requires Supervisor Co-sign</span>
-                  </div>
-                )}
+              <div className="p-5 pt-0">
+                <Link
+                  href={`/catalogue/${item.id}`}
+                  className="w-full flex items-center justify-center space-x-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs uppercase px-4 py-2.5 rounded border-2 border-slate-950 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 transition-all"
+                >
+                  <span>View System Details</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
               </div>
-
-              {/* High-Contrast Brutalist Action Button */}
-              <Link
-                href={`/catalogue/${item.id}`}
-                className="w-full mt-4 flex items-center justify-center space-x-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-mono font-black text-xs uppercase tracking-wider py-2.5 px-4 rounded-sm border-2 border-slate-950 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
-              >
-                <span>View & Book Equipment</span>
-                <ArrowRight className="h-4 w-4" />
-              </Link>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
